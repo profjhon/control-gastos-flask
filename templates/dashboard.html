@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Gastos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-dark px-4 no-print">
+        <span class="navbar-brand">Sistema de Control de Gastos</span>
+        <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">Cerrar Sesión</a>
+    </nav>
+
+    <div class="container my-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} py-2 no-print">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Formulario de Registro -->
+        <div class="card shadow-sm mb-4 no-print">
+            <div class="card-header bg-primary text-white">Registrar Nuevo Gasto</div>
+            <div class="card-body">
+                <form method="POST" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Fecha</label>
+                        <input type="date" name="fecha" class="form-control" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label">Descripción</label>
+                        <input type="text" name="descripcion" class="form-control" placeholder="Ej. Compra de insumos" required>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Monto (S/.)</label>
+                        <input type="number" step="0.01" name="monto" class="form-control" placeholder="0.00" required>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-success w-100">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabla y Reportes -->
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Reporte de Gastos</h5>
+                <div class="no-print">
+                    <a href="{{ url_for('reporte') }}" class="btn btn-outline-success btn-sm">Descargar Excel (CSV)</a>
+                    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">Imprimir / PDF</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Descripción</th>
+                                <th class="text-end">Monto</th>
+                                <th class="text-center no-print">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for g in gastos %}
+                            <tr>
+                                <td>{{ g['fecha'] }}</td>
+                                <td>{{ g['descripcion'] }}</td>
+                                <td class="text-end">S/. {{ "%.2f"|format(g['monto']) }}</td>
+                                <td class="text-center no-print">
+                                    <a href="{{ url_for('eliminar', id=g['id']) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este gasto?')">Eliminar</a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted">No hay gastos registrados aún.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-secondary fw-bold">
+                                <td colspan="2" class="text-end">TOTAL ACUMULADO:</td>
+                                <td class="text-end">S/. {{ "%.2f"|format(total) }}</td>
+                                <td class="no-print"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
